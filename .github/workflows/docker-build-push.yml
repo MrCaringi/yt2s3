@@ -1,0 +1,55 @@
+# Nombre del workflow (aparecerá en la pestaña "Actions")
+name: Build y Push a Docker Hub
+
+# 1. El Disparador (Trigger)
+# Esto se ejecuta CADA VEZ que haces 'push' al branch 'main'
+on:
+  push:
+    branches: [ "main" ] # Puedes cambiar "main" por "master" si usas ese
+
+# 2. Los Trabajos (Jobs)
+# 'jobs' define qué hacer. Tendremos un solo trabajo.
+jobs:
+  build-and-push:
+    # Usamos la última versión de Ubuntu como sistema operativo
+    runs-on: ubuntu-latest
+
+    # 3. Los Pasos (Steps)
+    # La secuencia de acciones a ejecutar
+    steps:
+      # Paso 1: Clonar el repositorio
+      # Trae tu código (Dockerfile, app.py, etc.) a la máquina virtual
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      # Paso 2: Iniciar sesión en Docker Hub
+      # Usa los secretos que creamos en el Paso 3
+      - name: Login a Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Paso 3: Extraer metadatos (como el nombre de la imagen y tags)
+      # Esta acción inteligente crea los tags de la imagen automáticamente
+      - name: Extraer metadatos de Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # ¡IMPORTANTE! Cambia esto por tu usuario/repo de Docker Hub
+          images: mrcaringi/yt2s3
+
+      # Paso 4: Configurar el builder de Docker (necesario)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Paso 5: Construir la imagen y subirla (push)
+      - name: Build y Push de la imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .         # Usa el Dockerfile en la raíz
+          file: ./Dockerfile # Ruta al Dockerfile
+          push: true         # ¡Importante! Esto "sube" la imagen
+          # Usa los tags generados en el Paso 3 (ej. 'latest' y el tag del commit)
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
