@@ -2,13 +2,12 @@
 name: Build y Push a Docker Hub
 
 # 1. El Disparador (Trigger)
-# Se ejecuta en pushes a 'main' Y en pushes de 'tags' que empiecen con 'v'
+# Se ejecuta en pushes al branch 'main' Y en pushes de tags (releases)
 on:
   push:
     branches: [ "main" ]
     tags:
       - 'v*.*.*' # Patrón para tags como v1.0.0
-      - 'v*.*'   # Patrón para tags como v1.0
 
 # 2. Los Trabajos (Jobs)
 jobs:
@@ -24,28 +23,25 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # --- INICIO Gestion de Etiquetas ---
-
+      # --- INICIO DE LA CLAVE: EXTRACCIÓN DE METADATOS Y TAGS ---
       - name: Extraer metadatos de Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: mrcaringi/yt2s3 # Tu imagen
+          images: mrcaringi/yt2s3 # ¡IMPORTANTE! Reemplaza con tu repositorio
           tags: |
-            # Si es un push a 'main', taguea como 'latest'
-            type=ref,event=branch,ref=main,suffix=latest
+            # Opción A: Tag 'latest'
+            # Se aplica solo si el push fue al branch 'main'.
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
             
-            # Si es un tag semántico (ej. v1.0.0), crea automáticamente:
-            # - v1.0.0
-            # - v1.0
-            # - v1
+            # Opción B: Tags Semánticos (vX.Y.Z)
+            # Se aplica solo si el evento es un 'tag' (ej. v1.0.0).
+            # Genera múltiples tags: v1.0.0, v1.0, v1
             type=semver,pattern={{version}}
-            
-            # (Opcional) Si quieres que el tag más nuevo sea también 'latest'
-            # Descomenta la siguiente línea:
-            type=semver,pattern={{version}},value=latest
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
 
-      # --- FIN Gestion de Etiquetas ---
+      # --- FIN DE LA CLAVE ---
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
