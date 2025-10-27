@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # --- INICIO DE LA MODIFICACIÓN ---
+      # --- INICIO Gestion de Etiquetas ---
 
       - name: Extraer metadatos de Docker
         id: meta
@@ -43,9 +43,9 @@ jobs:
             
             # (Opcional) Si quieres que el tag más nuevo sea también 'latest'
             # Descomenta la siguiente línea:
-            # type=semver,pattern={{version}},value=latest
+            type=semver,pattern={{version}},value=latest
 
-      # --- FIN DE LA MODIFICACIÓN ---
+      # --- FIN Gestion de Etiquetas ---
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
