@@ -12,3 +12,7 @@ Download a video from YT, convert it to MP3 audio format (with ffmpeg) and uploa
   <img src="https://contrib.rocks/image?repo=MrCaringi/yt2s3" />
 </a>
 [contrib.rocks](https://contrib.rocks).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MrCaringi/yt2s3&type=Date)](https://www.star-history.com/#MrCaringi/yt2s3&Date)
