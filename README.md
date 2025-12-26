@@ -87,7 +87,7 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
   <summary>Display changelog</summary>
 
 - Version 2.0.1 — 2025-12-26
-  - Using Gunicorn instead of Flask
+  - Update Dockerfile to use Gunicorn and include Deno runtime
 - Version 2.0.0 — 2025-12-26
   - **BREAKING CHANGES**
     - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.

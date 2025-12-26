@@ -8,16 +8,18 @@ RUN apt-get update && \
         ffmpeg \
         ca-certificates \
         curl \
+        unzip \
         build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip and install Python dependencies
 RUN python -m pip install --upgrade pip setuptools
-RUN pip install "yt-dlp[default]" flask requests minio gunicorn
+RUN python -m pip install 'yt-dlp[default]' flask requests minio gunicorn
 
 # Install Deno runtime (used by yt-dlp EJS challenge solver)
-RUN curl -fsSL https://deno.land/x/install/install.sh | sh && \
-    ln -s /root/.deno/bin/deno /usr/local/bin/deno
+# Install into /usr/local to avoid using a per-user home dir during image build
+RUN curl -fsSL https://deno.land/x/install/install.sh | DENO_INSTALL=/usr/local sh && \
+    chmod +x /usr/local/bin/deno
 
 # Copy the application
 WORKDIR /app
