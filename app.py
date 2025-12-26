@@ -9,7 +9,7 @@ import glob
 
 app = Flask(__name__)
 
-# version info: v2.0.0 - added S3 object prefix support, improved error handling and logging
+# version info: v2.1.0 - s3ObjectPrefix is now required in the POST request JSON body
 
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.
@@ -54,15 +54,18 @@ def process_video():
     data = request.json
     video_id = data.get('videoId')
     bucket_name = data.get('bucketName')
+    # s3ObjectPrefix is now required in the request body (breaking change v2.1)
+    s3_prefix = data.get('s3ObjectPrefix')
     
-    if not video_id or not bucket_name:
-        app.logger.warning("Missing videoId or bucketName in request")
-        return jsonify({"error": "Missing videoId or bucketName"}), 400
+    if not video_id or not bucket_name or not s3_prefix:
+        app.logger.warning("Missing videoId, bucketName or s3ObjectPrefix in request")
+        return jsonify({"error": "Missing videoId, bucketName or s3ObjectPrefix"}), 400
 
     youtube_url = f"https://www.youtube.com/watch?v={video_id}"
     temp_filepath = f"/tmp/{video_id}.mp3"
-    # Use configured prefix for the S3 object (no leading/trailing slashes)
-    s3_object_name = f"{S3_OBJECT_PREFIX}/{video_id}.mp3"
+    # Use the prefix from the request (strip slashes)
+    s3_prefix = s3_prefix.strip('/')
+    s3_object_name = f"{s3_prefix}/{video_id}.mp3"
 
     app.logger.info("Start processing video=%s bucket=%s url=%s", video_id, bucket_name, youtube_url)
 
@@ -164,6 +167,7 @@ def process_video():
             "upload_date": upload_date,
             "duration_seconds": duration,
             "size_bytes": file_size,
+            "s3ObjectPrefix": s3_prefix,
             "s3ObjectId": final_url,
             "s3Object": s3_object_name,
             "s3Url": final_url,

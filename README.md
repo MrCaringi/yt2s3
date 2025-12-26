@@ -46,7 +46,8 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 ```JSON
   {
     "videoId": "RFQi7QcVN74-16",
-    "bucketName": "your S3 bucket Name"
+    "bucketName": "your S3 bucket Name",
+    "s3ObjectPrefix": "audios"
   }
 ```
 
@@ -86,12 +87,13 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
-- Version 2.0.1 — 2025-12-26
+- Version 2.1.0 — 2025-12-26
+  - **BREAKING CHANGE**: `s3ObjectPrefix` is now required in the POST request JSON body and will be used as the upload prefix for that request. The server will reject requests without this field.
+- Version 2.0.3 — 2025-12-26
   - Update Dockerfile to use Gunicorn and include Deno runtime
 - Version 2.0.0 — 2025-12-26
   - **BREAKING CHANGES**
     - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.
     - Added `S3_OBJECT_PREFIX` environment variable to configure the upload path/prefix inside the bucket (default: `audios`).
   - Translated internal comments and Dockerfile docs to English.
-
 </details>
