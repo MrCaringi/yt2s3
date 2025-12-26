@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import glob
 
-# last version info: v2.1.2 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
+# last version info: v2.1.3 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
 
 app = Flask(__name__)
 
@@ -38,6 +38,8 @@ def prepare_cookiefile(path):
     """
     if not path or not os.path.isfile(path):
         return None
+    final_file = None
+    cookiefile_to_use = None
     try:
         # if writable, use as-is
         if os.access(path, os.W_OK):
@@ -189,14 +191,6 @@ def process_video():
         final_url = f"http{'s' if S3_SECURE else ''}://{S3_ENDPOINT}/{bucket_name}/{s3_object_name}"
         app.logger.info("Upload successful for id=%s object=%s size=%s bytes etag=%s url=%s", video_id, s3_object_name, file_size, etag, final_url)
 
-        # Clean up
-        os.remove(final_file)
-        if cookiefile_to_use and cookiefile_to_use != YTDLP_COOKIES:
-            try:
-                os.remove(cookiefile_to_use)
-            except Exception:
-                pass
-
         # Return detailed response including S3 object id/url and useful metadata
         return jsonify({
             "status": "success",
@@ -216,6 +210,18 @@ def process_video():
     except Exception as e:
         app.logger.exception("Processing failed for video=%s", video_id)
         return jsonify({"error": f"Processing failed: {str(e)}"}), 500
+    finally:
+        # Ensure temp files are removed from /tmp regardless of success/failure
+        try:
+            if final_file and os.path.isfile(final_file):
+                os.remove(final_file)
+        except Exception as e:
+            app.logger.warning("Failed to remove temp file %s: %s", final_file, e)
+        try:
+            if cookiefile_to_use and cookiefile_to_use != YTDLP_COOKIES and os.path.isfile(cookiefile_to_use):
+                os.remove(cookiefile_to_use)
+        except Exception:
+            pass
 
 if __name__ == '__main__':
     # Bind to 0.0.0.0 so the service is reachable from other containers

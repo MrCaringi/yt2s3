@@ -11,11 +11,11 @@ Download a video from YT, convert it to MP3 audio format (with ffmpeg) and uploa
 ### COMPOSE.YAML Example
 ```yaml
 services:
-  youtube-worker:
+  yt2s3:
     image: mrcaringi/yt2s3:latest
-    container_name: yt-dlp-worker
+    container_name: yt2s3
     volumes:
-      - ./yt-dlp/cookies.txt:/app/cookies.txt
+      - ./cookies.txt:/app/cookies.txt
       - /tmp/yt-dlp:/tmp
     environment:
       - YTDLP_COOKIES=/app/cookies.txt
@@ -27,7 +27,10 @@ services:
       - 5000:5000
     restart: always
 ```
-#### cookies.txt
+#### Parameters
+- `/tmp/yt-dlp` is the directory used during file download, after upload to s3-storage, the faile is deleted.
+- `./cookies.txt` location of cookie file, see next section:
+#### YTDLP_COOKIES / cookies.txt
 This file must contain your cookies for your YouTube sessions in Netscape format.
 
 You can get it, for instance, [using this plugin in your browser](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
@@ -40,11 +43,11 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 
 ### INPUT
 - METHOD: `POST`
-- URL: `http://youtube-worker:5000/process`
+- URL: `http://yt2s3:5000/process`
 - BODY: __JSON Body content type__
 ```JSON
   {
-    "videoId": "RFQi7QcVN74-16",
+    "videoId": "RFQi7QcVN74",
     "bucketName": "your S3 bucket Name",
     "s3ObjectPrefix": "audios"
   }
@@ -86,10 +89,11 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
-- Version 2.1.2 — 2025-12-26
+- Version 2.1.3 — 2025-12-26
   - **BREAKING CHANGE**: `s3ObjectPrefix` is now required in the POST request JSON body and will be used as the upload prefix for that request. The server will reject requests without this field.
   - now logs yt-dlp download progress and routes yt-dlp messages into the Docker logs (via Flask logger). It also passes -loglevel info to ffmpeg so conversion activity appears
   - If you want more/less detail, adjust the postprocessor_args loglevel (quiet, info, warning, error) or change what the progress hook logs.
+  - remove downloaded temporary file after upload to S3-Storage
 - Version 2.0.3 — 2025-12-26
   - Update Dockerfile to use Gunicorn and include Deno runtime
 - Version 2.0.0 — 2025-12-26
