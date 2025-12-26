@@ -33,6 +33,12 @@ This file must contain your cookies for your YouTube sessions in Netscape format
 
 You can get it, for instance, [using this plugin in your browser](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 
+### EJS / JavaScript challenge runtime
+
+- The container image now includes the Deno JavaScript runtime and installs `yt-dlp` with the default extras (including `yt-dlp-ejs`).
+- Having a supported JS runtime and the EJS scripts available avoids the "challenge solving failed" warnings when downloading from YouTube.
+
+
 ### INPUT
 - METHOD: `POST`
 - URL: `http://youtube-worker:5000/process`
@@ -80,6 +86,8 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
+- Version 2.0.1 — 2025-12-26
+  - Using Gunicorn instead of Flask
 - Version 2.0.0 — 2025-12-26
   - **BREAKING CHANGES**
     - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.

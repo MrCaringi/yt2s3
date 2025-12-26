@@ -13,7 +13,11 @@ RUN apt-get update && \
 
 # Upgrade pip and install Python dependencies
 RUN python -m pip install --upgrade pip setuptools
-RUN pip install yt-dlp flask requests minio
+RUN pip install "yt-dlp[default]" flask requests minio gunicorn
+
+# Install Deno runtime (used by yt-dlp EJS challenge solver)
+RUN curl -fsSL https://deno.land/x/install/install.sh | sh && \
+    ln -s /root/.deno/bin/deno /usr/local/bin/deno
 
 # Copy the application
 WORKDIR /app
@@ -22,5 +26,6 @@ COPY . /app
 # Expose port (Flask)
 EXPOSE 5000
 
-# Default command
-CMD ["python", "app.py"]
+# Default command: run with Gunicorn (production WSGI server)
+# Removes Flask development server warning and the "Press CTRL+C to quit" message
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--log-level", "info"]
