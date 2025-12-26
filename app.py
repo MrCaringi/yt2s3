@@ -9,29 +9,32 @@ import glob
 
 app = Flask(__name__)
 
-# --- CONFIGURACIÓN DE MINIO/S3 (Asegúrate de que estas variables estén disponibles en Docker) ---
-# El worker necesita acceso a tus credenciales de MinIO.
-# N8N se las enviará, pero estas son las variables de entorno para MinIO
-MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT") # Ej: minio.tudominio.com
-MINIO_ACCESS_KEY = os.environ.get("MINIO_ACCESS_KEY")
-MINIO_SECRET_KEY = os.environ.get("MINIO_SECRET_KEY")
-MINIO_SECURE = os.environ.get("MINIO_SECURE", "true").lower() == "true" # Usar HTTPS
+# --- S3 / S3-compatible storage configuration ---
+# The worker needs S3-compatible endpoint and credentials.
+# Environment variables use generic names (S3_*) — these must be provided in Docker.
+S3_ENDPOINT = os.environ.get("S3_ENDPOINT")  # e.g. s3.example.com
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
+# Whether to use HTTPS when contacting the S3 endpoint (true/false)
+S3_SECURE = os.environ.get("S3_SECURE", "true").lower() == "true"
 
-# Path al archivo de cookies para yt-dlp (puede configurarse con la variable de entorno YTDLP_COOKIES)
+# Path to the cookie file for yt-dlp (configurable via the YTDLP_COOKIES env var)
 YTDLP_COOKIES = os.environ.get("YTDLP_COOKIES", "/app/cookies.txt")
 
+# Configurable S3 object prefix (folder/path inside the bucket). Default: 'audios'
+S3_OBJECT_PREFIX = os.environ.get("S3_OBJECT_PREFIX", "audios").strip('/')
+
 def prepare_cookiefile(path):
-    """
-    Si el cookiefile existe pero está montado como read-only, copia a un tmp file
-    para que yt-dlp pueda escribir en él. Devuelve la ruta usable o None.
+    """If the cookiefile exists but is mounted read-only, copy it to a temp file
+    so that yt-dlp can write to it. Returns the usable path or None.
     """
     if not path or not os.path.isfile(path):
         return None
     try:
-        # si es escribible, usar tal cual
+        # if writable, use as-is
         if os.access(path, os.W_OK):
             return path
-        # copiar a tmp para permitir escrituras de yt-dlp
+        # copy to tmp to allow yt-dlp to write
         tmp = tempfile.NamedTemporaryFile(prefix="yt_cookies_", delete=False)
         tmp.close()
         shutil.copy2(path, tmp.name)
@@ -44,7 +47,7 @@ def prepare_cookiefile(path):
 @app.route('/process', methods=['POST'])
 def process_video():
     """
-    Descarga el video, lo convierte a MP3 y lo sube directamente a MinIO.
+    Download the video, convert it to MP3 and upload it to S3-compatible storage.
     """
     data = request.json
     video_id = data.get('videoId')
@@ -56,12 +59,13 @@ def process_video():
 
     youtube_url = f"https://www.youtube.com/watch?v={video_id}"
     temp_filepath = f"/tmp/{video_id}.mp3"
-    s3_object_name = f"audios/{video_id}.mp3"
+    # Use configured prefix for the S3 object (no leading/trailing slashes)
+    s3_object_name = f"{S3_OBJECT_PREFIX}/{video_id}.mp3"
 
     app.logger.info("Start processing video=%s bucket=%s url=%s", video_id, bucket_name, youtube_url)
 
     try:
-        # --- 1. DESCARGA Y CONVERSIÓN CON YT-DLP ---
+        # --- 1. DOWNLOAD & CONVERSION WITH YT-DLP ---
         cookiefile_to_use = None
         if os.path.isfile(YTDLP_COOKIES):
             cookiefile_to_use = prepare_cookiefile(YTDLP_COOKIES)
@@ -117,12 +121,12 @@ def process_video():
         file_size = os.path.getsize(final_file)
         app.logger.info("Download/convert complete for id=%s title=%s file=%s size=%s bytes", video_id, title, final_file, file_size)
 
-        # --- 2. SUBIDA DIRECTA A MINIO ---
+        # --- 2. Upload directly to S3-compatible storage ---
         minio_client = Minio(
-            MINIO_ENDPOINT,
-            access_key=MINIO_ACCESS_KEY,
-            secret_key=MINIO_SECRET_KEY,
-            secure=MINIO_SECURE
+            S3_ENDPOINT,
+            access_key=S3_ACCESS_KEY,
+            secret_key=S3_SECRET_KEY,
+            secure=S3_SECURE
         )
 
         app.logger.info("Uploading %s to bucket=%s object=%s", final_file, bucket_name, s3_object_name)
@@ -133,12 +137,12 @@ def process_video():
             content_type='audio/mpeg'
         )
 
-        # Log MinIO result (if available) and final URL
+        # Log upload result (if available) and final URL
         try:
             etag = getattr(result, "etag", None) or getattr(result, "object", None)
         except Exception:
             etag = None
-        final_url = f"http{'s' if MINIO_SECURE else ''}://{MINIO_ENDPOINT}/{bucket_name}/{s3_object_name}"
+        final_url = f"http{'s' if S3_SECURE else ''}://{S3_ENDPOINT}/{bucket_name}/{s3_object_name}"
         app.logger.info("Upload successful for id=%s object=%s size=%s bytes etag=%s url=%s", video_id, s3_object_name, file_size, etag, final_url)
 
         # Clean up
@@ -169,5 +173,5 @@ def process_video():
         return jsonify({"error": f"Processing failed: {str(e)}"}), 500
 
 if __name__ == '__main__':
-    # Usar '0.0.0.0' para que sea accesible desde otros contenedores
+    # Bind to 0.0.0.0 so the service is reachable from other containers
     app.run(host='0.0.0.0', port=5000)

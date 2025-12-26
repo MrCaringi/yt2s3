@@ -1,6 +1,6 @@
 # YT-2-S3
 
-Download a video from YT, convert it to MP3 audio format (with ffmpeg) and upload it to S3 compatible storage (minio)
+Download a video from YT, convert it to MP3 audio format (with ffmpeg) and upload it to a S3 compatible storage (RustFS, minio, etc)
 
 ## Docker Hub repo
 
@@ -19,16 +19,17 @@ services:
       - /tmp/yt-dlp:/tmp
     environment:
       - YTDLP_COOKIES=/app/cookies.txt
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
-      - MINIO_SECURE=true
+      - S3_ENDPOINT=${S3_ENDPOINT}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - S3_SECURE=true
+      - S3_OBJECT_PREFIX=audios
     ports:
       - 5000:5000
     restart: always
 ```
 #### cookies.txt
-This file must containt your cookies for your YT sessions in `NetScape` format,
+This file must contain your cookies for your YouTube sessions in Netscape format.
 
 You can get it, for instance, [using this plugin in your browser](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 
@@ -74,3 +75,15 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=MrCaringi/yt2s3&type=Date)](https://www.star-history.com/#MrCaringi/yt2s3&Date)
+
+## Changelog
+<details>
+  <summary>Display changelog</summary>
+
+- Version 2.0.0 — 2025-12-26
+  - **BREAKING CHANGES**
+    - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.
+    - Added `S3_OBJECT_PREFIX` environment variable to configure the upload path/prefix inside the bucket (default: `audios`).
+  - Translated internal comments and Dockerfile docs to English.
+
+</details>
