@@ -9,6 +9,8 @@ import glob
 
 app = Flask(__name__)
 
+# version info: v2.0.0 - added S3 object prefix support, improved error handling and logging
+
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.
 # Environment variables use generic names (S3_*) — these must be provided in Docker.
