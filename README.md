@@ -23,7 +23,6 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_SECURE=true
-      - S3_OBJECT_PREFIX=audios
     ports:
       - 5000:5000
     restart: always
@@ -87,8 +86,10 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
-- Version 2.1.0 — 2025-12-26
+- Version 2.1.1 — 2025-12-26
   - **BREAKING CHANGE**: `s3ObjectPrefix` is now required in the POST request JSON body and will be used as the upload prefix for that request. The server will reject requests without this field.
+  - now logs yt-dlp download progress and routes yt-dlp messages into the Docker logs (via Flask logger). It also passes -loglevel info to ffmpeg so conversion activity appears
+  - If you want more/less detail, adjust the postprocessor_args loglevel (quiet, info, warning, error) or change what the progress hook logs.
 - Version 2.0.3 — 2025-12-26
   - Update Dockerfile to use Gunicorn and include Deno runtime
 - Version 2.0.0 — 2025-12-26

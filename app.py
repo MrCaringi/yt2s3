@@ -9,7 +9,7 @@ import glob
 
 app = Flask(__name__)
 
-# version info: v2.1.0 - s3ObjectPrefix is now required in the POST request JSON body
+# last version info: v2.1.1 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
 
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.
@@ -78,6 +78,33 @@ def process_video():
             app.logger.warning("cookies not found at %s; proceeding without cookies (may fail for some videos)", YTDLP_COOKIES)
 
         app.logger.info("yt-dlp options prepared (cookiefile=%s)", bool(cookiefile_to_use))
+        # yt-dlp logger adapter to route messages to Flask app logger
+        class YtdlpLogger:
+            def debug(self, msg):
+                app.logger.debug(msg)
+            def info(self, msg):
+                app.logger.info(msg)
+            def warning(self, msg):
+                app.logger.warning(msg)
+            def error(self, msg):
+                app.logger.error(msg)
+
+        # progress hook to log download/conversion progress
+        def ytdlp_progress(d):
+            status = d.get('status')
+            if status == 'downloading':
+                filename = d.get('filename') or d.get('tmpfilename')
+                downloaded = d.get('downloaded_bytes')
+                total = d.get('total_bytes') or d.get('total_bytes_estimate')
+                speed = d.get('speed')
+                eta = d.get('eta')
+                try:
+                    pct = (downloaded / total * 100) if downloaded and total else None
+                except Exception:
+                    pct = None
+                app.logger.info("yt-dlp downloading %s %.2f%% %s/%s speed=%s ETA=%s", filename, pct or 0.0, downloaded, total, speed, eta)
+            elif status == 'finished':
+                app.logger.info("yt-dlp finished downloading: %s -> now post-processing", d.get('filename'))
 
         ydl_opts = {
             'format': 'bestaudio/best',
@@ -87,7 +114,13 @@ def process_video():
                 'preferredcodec': 'mp3',
                 'preferredquality': '128',
             }],
+            # route yt-dlp logs to our Flask logger and enable progress hooks
+            'logger': YtdlpLogger(),
+            'progress_hooks': [ytdlp_progress],
+            # increase verbosity for ffmpeg via postprocessor args
+            'postprocessor_args': ['-loglevel', 'info'],
             'quiet': True,
+            'verbose': True,
         }
         if cookiefile_to_use:
             ydl_opts['cookiefile'] = cookiefile_to_use
