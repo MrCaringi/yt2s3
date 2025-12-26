@@ -30,4 +30,4 @@ EXPOSE 5000
 
 # Default command: run with Gunicorn (production WSGI server)
 # Removes Flask development server warning and the "Press CTRL+C to quit" message
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--log-level", "info"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--log-level", "info", "--capture-output", "--log-file", "-", "--access-logfile", "-"]

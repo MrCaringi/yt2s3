@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 import requests
 from flask import Flask, request, jsonify
 from yt_dlp import YoutubeDL
@@ -7,9 +9,13 @@ import shutil
 import tempfile
 import glob
 
+# last version info: v2.1.2 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
+
 app = Flask(__name__)
 
-# last version info: v2.1.1 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
+# Ensure application logs go to stdout so Docker/Gunicorn capture them
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
+app.logger.setLevel(logging.INFO)
 
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.

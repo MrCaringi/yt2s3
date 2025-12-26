@@ -86,7 +86,7 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
-- Version 2.1.1 — 2025-12-26
+- Version 2.1.2 — 2025-12-26
   - **BREAKING CHANGE**: `s3ObjectPrefix` is now required in the POST request JSON body and will be used as the upload prefix for that request. The server will reject requests without this field.
   - now logs yt-dlp download progress and routes yt-dlp messages into the Docker logs (via Flask logger). It also passes -loglevel info to ffmpeg so conversion activity appears
   - If you want more/less detail, adjust the postprocessor_args loglevel (quiet, info, warning, error) or change what the progress hook logs.
