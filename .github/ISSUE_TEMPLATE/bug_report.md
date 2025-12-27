@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: Report a problem in the project
-title: "[BUG] Describe the issue"
+title: "🐞 [BUG] Describe the issue"
 labels: bug
 assignees: 'mrcaringi'
 ---
