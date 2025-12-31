@@ -17,6 +17,13 @@ app = Flask(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
 app.logger.setLevel(logging.INFO)
 
+# Image/version info (populate at build time via Docker build-arg / environment)
+IMAGE_VERSION = os.environ.get("IMAGE_VERSION", "dev")
+DOCKER_REPO_URL = os.environ.get("DOCKER_REPO_URL", "https://hub.docker.com/r/mrcaringi/yt2s3/tags")
+
+# Announce version and repository URL on startup so container logs show image tag
+app.logger.info("yt2s3 startup: version=%s repo=%s", IMAGE_VERSION, DOCKER_REPO_URL)
+
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.
 # Environment variables use generic names (S3_*) — these must be provided in Docker.
