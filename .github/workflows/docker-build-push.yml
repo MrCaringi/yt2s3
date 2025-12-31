@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*.*.*'  # Solo se ejecuta si el push incluye un tag semántico
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
