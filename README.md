@@ -89,6 +89,8 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
+- Version 2.2.1 — 2025-12-31
+  - Github Actions update to automatically generate a release
 - Version 2.2.0 — 2025-12-31
   - Moved startup/version logging to the container entrypoint so the message is printed exactly once and appears before Gunicorn's startup lines in container logs (avoids duplicate lines when running under Gunicorn).
   - Added `docker-entrypoint.sh` which prints the `IMAGE_VERSION` and `DOCKER_REPO_URL` (both can be provided via build-args) and then execs Gunicorn.
