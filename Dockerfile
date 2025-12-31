@@ -35,9 +35,12 @@ RUN curl -fsSL https://deno.land/x/install/install.sh | DENO_INSTALL=/usr/local 
 WORKDIR /app
 COPY . /app
 
+# Add entrypoint script that prints version + repo once and then execs gunicorn
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose port (Flask)
 EXPOSE 5000
 
-# Default command: run with Gunicorn (production WSGI server)
-# Removes Flask development server warning and the "Press CTRL+C to quit" message
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--log-level", "info", "--capture-output", "--log-file", "-", "--access-logfile", "-"]
+# Entrypoint prints version once then starts Gunicorn
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
