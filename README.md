@@ -89,6 +89,16 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 <details>
   <summary>Display changelog</summary>
 
+- Version 2.2.0 — 2025-12-31
+  - Moved startup/version logging to the container entrypoint so the message is printed exactly once and appears before Gunicorn's startup lines in container logs (avoids duplicate lines when running under Gunicorn).
+  - Added `docker-entrypoint.sh` which prints the `IMAGE_VERSION` and `DOCKER_REPO_URL` (both can be provided via build-args) and then execs Gunicorn.
+  - The previous in-app startup log was removed to prevent duplicate log entries from multiple processes.
+  - This is NOT a breaking change.
+- Version 2.1.4 — 2025-12-31
+  - Added startup logging of the container image version and Docker Hub repository URL so the image tag is visible in container logs.
+  - The image now accepts a build-time `IMAGE_VERSION` build-arg which is propagated into the running container as the `IMAGE_VERSION` environment variable and recorded in the OCI image label `org.opencontainers.image.version`.
+  - The `DOCKER_REPO_URL` build-arg (default: `https://hub.docker.com/r/mrcaringi/yt2s3/tags`) is also set in the image and logged at startup.
+  - This is NOT a breaking change; runtime behavior and API are unchanged.
 - Version 2.1.3 — 2025-12-26
   - **BREAKING CHANGE**: `s3ObjectPrefix` is now required in the POST request JSON body and will be used as the upload prefix for that request. The server will reject requests without this field.
   - now logs yt-dlp download progress and routes yt-dlp messages into the Docker logs (via Flask logger). It also passes -loglevel info to ffmpeg so conversion activity appears

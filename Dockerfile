@@ -2,6 +2,16 @@ FROM python:3.11-slim
 
 ENV PYTHONUNBUFFERED=1
 
+# Build-time args to propagate the image/tag and repository URL into the image
+ARG IMAGE_VERSION=dev
+ARG DOCKER_REPO_URL=https://hub.docker.com/r/mrcaringi/yt2s3/tags
+
+# Expose as environment variables inside the container and label the image
+ENV IMAGE_VERSION=${IMAGE_VERSION}
+ENV DOCKER_REPO_URL=${DOCKER_REPO_URL}
+LABEL org.opencontainers.image.version="${IMAGE_VERSION}"
+LABEL org.opencontainers.image.source="https://github.com/MrCaringi/yt2s3"
+
 # Install system dependencies (ffmpeg and basic tools)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -25,9 +35,12 @@ RUN curl -fsSL https://deno.land/x/install/install.sh | DENO_INSTALL=/usr/local 
 WORKDIR /app
 COPY . /app
 
+# Add entrypoint script that prints version + repo once and then execs gunicorn
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose port (Flask)
 EXPOSE 5000
 
-# Default command: run with Gunicorn (production WSGI server)
-# Removes Flask development server warning and the "Press CTRL+C to quit" message
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app", "--workers", "2", "--threads", "4", "--log-level", "info", "--capture-output", "--log-file", "-", "--access-logfile", "-"]
+# Entrypoint prints version once then starts Gunicorn
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]

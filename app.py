@@ -16,6 +16,7 @@ app = Flask(__name__)
 # Ensure application logs go to stdout so Docker/Gunicorn capture them
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s')
 app.logger.setLevel(logging.INFO)
+app_logger = app.logger
 
 # --- S3 / S3-compatible storage configuration ---
 # The worker needs S3-compatible endpoint and credentials.
