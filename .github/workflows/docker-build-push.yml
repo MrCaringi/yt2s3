@@ -65,8 +65,11 @@ jobs:
         run: |
           # Extract the changelog section for this version from README.md
           # Format: "- Version X.Y.Z — YYYY-MM-DD" to the next "- Version" line
-          VERSION="${{ env.TAG_NAME }}"
-          CHANGELOG=$(sed -n "/^- Version ${VERSION#v}/,/^- Version /p" README.md | head -n -1)
+          TAG_VERSION="${{ env.TAG_NAME }}"
+          # Remove 'v' prefix if present for comparison
+          VERSION_NO_V="${TAG_VERSION#v}"
+          # Use awk to extract changelog between version markers
+          CHANGELOG=$(awk "/^- Version $VERSION_NO_V/,/^- Version [0-9]/ {print}" README.md | sed '$d')
           if [ -z "$CHANGELOG" ]; then
             CHANGELOG="Release ${{ env.TAG_NAME }}"
           fi
@@ -78,7 +81,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
+          tag_name: ${{ env.TAG_NAME }}
           body: ${{ steps.changelog.outputs.notes }}
           draft: false
           prerelease: ${{ env.TAG_BRANCH == 'testing' }}
