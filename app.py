@@ -8,6 +8,8 @@ from minio import Minio
 import shutil
 import tempfile
 import glob
+import shlex
+import json
 
 # last version info: v2.1.3 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
 
@@ -115,22 +117,47 @@ def process_video():
             elif status == 'finished':
                 app.logger.info("yt-dlp finished downloading: %s -> now post-processing", d.get('filename'))
 
+        # --- Configurable yt-dlp / ffmpeg options via environment variables ---
+        ytdlp_format = os.environ.get('YTDLP_FORMAT', 'bestaudio/best')
+        ytdlp_outtmpl = os.environ.get('YTDLP_OUTTMPL', '/tmp/%(id)s.%(ext)s')
+        ytdlp_codec = os.environ.get('YTDLP_PREFERRED_CODEC', 'mp3')
+        ytdlp_quality = os.environ.get('YTDLP_PREFERRED_QUALITY', '128')
+        # Postprocessor args (string -> list) e.g. "-loglevel info"
+        pp_args_raw = os.environ.get('YTDLP_POSTPROCESSOR_ARGS', '-loglevel info')
+        try:
+            ytdlp_postproc_args = shlex.split(pp_args_raw)
+        except Exception:
+            ytdlp_postproc_args = ['-loglevel', 'info']
+
+        # Allow passing additional yt-dlp options as JSON map in env var YTDLP_EXTRA_OPTS_JSON
+        extra_opts = {}
+        extra_raw = os.environ.get('YTDLP_EXTRA_OPTS_JSON')
+        if extra_raw:
+            try:
+                extra_opts = json.loads(extra_raw)
+                if not isinstance(extra_opts, dict):
+                    extra_opts = {}
+            except Exception:
+                extra_opts = {}
+
         ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': '/tmp/%(id)s.%(ext)s',
+            'format': ytdlp_format,
+            'outtmpl': ytdlp_outtmpl,
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '128',
+                'preferredcodec': ytdlp_codec,
+                'preferredquality': ytdlp_quality,
             }],
-            # route yt-dlp logs to our Flask logger and enable progress hooks
             'logger': YtdlpLogger(),
             'progress_hooks': [ytdlp_progress],
-            # increase verbosity for ffmpeg via postprocessor args
-            'postprocessor_args': ['-loglevel', 'info'],
+            'postprocessor_args': ytdlp_postproc_args,
             'quiet': True,
             'verbose': True,
         }
+        # Merge any extra options provided via JSON (env var)
+        if extra_opts:
+            ydl_opts.update(extra_opts)
+
         if cookiefile_to_use:
             ydl_opts['cookiefile'] = cookiefile_to_use
 

@@ -23,6 +23,11 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_SECURE=true
+      #- `YTDLP_FORMAT` (default: `bestaudio/best`)
+      #- `YTDLP_OUTTMPL` (default: `/tmp/%(id)s.%(ext)s`)
+      #- `YTDLP_PREFERRED_CODEC` (default: `mp3`)
+      #- `YTDLP_PREFERRED_QUALITY` (default: `128`)
+      #- `YTDLP_POSTPROCESSOR_ARGS` (default: `-loglevel info`) — parsed into a list for ffmpeg args
     ports:
       - 5000:5000
     restart: always
@@ -88,6 +93,20 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 ## Changelog
 <details>
   <summary>Display changelog</summary>
+
+- Version 2.3.0 — 2026-01-01
+  - Added configurable `yt-dlp` and `ffmpeg` options via environment variables so download/convert behavior can be tuned at runtime.
+  - New environment variables (defaults shown):
+    - `YTDLP_FORMAT` (default: `bestaudio/best`)
+    - `YTDLP_OUTTMPL` (default: `/tmp/%(id)s.%(ext)s`)
+    - `YTDLP_PREFERRED_CODEC` (default: `mp3`)
+    - `YTDLP_PREFERRED_QUALITY` (default: `128`)
+    - `YTDLP_POSTPROCESSOR_ARGS` (default: `-loglevel info`) — parsed into a list for ffmpeg args
+    - `YTDLP_EXTRA_OPTS_JSON` (optional) — pass a JSON object of additional yt-dlp options that will be merged into the runtime options
+  - New behavior is backwards-compatible: if no env vars are provided, previous defaults are used (NOT a breaking change).
+  - Examples:
+    - `docker run -e YTDLP_FORMAT="bestaudio[ext=m4a]" -e YTDLP_PREFERRED_QUALITY=192 mrcaringi/yt2s3:v2.3.0`
+    - `docker-compose` (build or image) can set `environment` with any of the variables above.
 
 - Version 2.2.1 — 2025-12-31
   - Github Actions update to automatically generate a release
