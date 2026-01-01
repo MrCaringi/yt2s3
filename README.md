@@ -23,17 +23,32 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_SECURE=true
-      #- `YTDLP_FORMAT` (default: `bestaudio/best`)
-      #- `YTDLP_OUTTMPL` (default: `/tmp/%(id)s.%(ext)s`)
-      #- `YTDLP_PREFERRED_CODEC` (default: `mp3`)
-      #- `YTDLP_PREFERRED_QUALITY` (default: `128`)
-      #- `YTDLP_POSTPROCESSOR_ARGS` (default: `-loglevel info`) — parsed into a list for ffmpeg args
+      # Optional yt-dlp/ffmpeg tuning (uncomment to customize):
+      #- YTDLP_FORMAT=bestaudio/best
+      #- YTDLP_PREFERRED_CODEC=mp3
+      #- YTDLP_PREFERRED_QUALITY=128
+      #- YTDLP_POSTPROCESSOR_ARGS=-loglevel info
     ports:
       - 5000:5000
     restart: always
 ```
+
+#### .env file example
+Create a `.env` file in the same directory as your `docker-compose.yml`:
+```bash
+# S3 credentials and endpoint
+S3_ENDPOINT=s3.example.com
+S3_ACCESS_KEY=your_access_key
+S3_SECRET_KEY=your_secret_key
+S3_SECURE=true
+
+# Optional: tune yt-dlp/ffmpeg behavior
+# YTDLP_FORMAT=bestaudio/best
+# YTDLP_PREFERRED_QUALITY=192
+```
+
 #### Parameters
-- `/tmp/yt-dlp` is the directory used during file download, after upload to s3-storage, the faile is deleted.
+- `/tmp/yt-dlp` is the directory used during file download; after upload to s3-storage, the file is deleted.
 - `./cookies.txt` location of cookie file, see next section:
 #### YTDLP_COOKIES / cookies.txt
 This file must contain your cookies for your YouTube sessions in Netscape format.
