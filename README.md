@@ -105,9 +105,41 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 
 [![Star History Chart](https://api.star-history.com/svg?repos=MrCaringi/yt2s3&type=Date)](https://www.star-history.com/#MrCaringi/yt2s3&Date)
 
+## Troubleshooting
+
+### HTTP 403 Forbidden error from YouTube
+
+If you encounter errors like `[download] Got error: HTTP Error 403: Forbidden`, this typically indicates that YouTube is blocking the download request. This can happen for several reasons:
+
+**Root causes:**
+- Your `cookies.txt` file is expired or outdated
+- The video is from a channel that has additional protection or regional restrictions
+- YouTube has changed its authentication/access patterns
+
+**Solutions:**
+1. **Update your cookies.txt** — The most common fix:
+   - Use a browser cookie exporter extension (e.g., [Get CookiesTxt Locally](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) for Chrome/Edge)
+   - Export your cookies in Netscape format from a YouTube session where you're logged in
+   - Replace the `cookies.txt` file and restart the container
+   - Cookies expire periodically; refresh them every 2-4 weeks for continuous operation
+
+2. **Check for channel-specific restrictions:**
+   - Try downloading from other channels to confirm it's not a global issue
+   - Some channels may have stricter protection that requires additional authentication
+
+3. **Use a custom User-Agent** (for advanced cases):
+   - Set `YTDLP_EXTRA_OPTS_JSON` environment variable:
+     ```yaml
+     YTDLP_EXTRA_OPTS_JSON='{ "http_headers": { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } }'
+     ```
+
 ## Changelog
 <details>
   <summary>Display changelog</summary>
+
+- Version 2.3.1 — 2026-01-17
+  - **BUG FIX**: Fixed `UnboundLocalError` in the `finally` block that would occur when yt-dlp download fails. Variables `final_file` and `cookiefile_to_use` are now properly initialized at the start of the request handler.
+  - This is NOT a breaking change; it only fixes a bug in error handling.
 
 - Version 2.3.0 — 2026-01-01
   - Added configurable `yt-dlp` and `ffmpeg` options via environment variables so download/convert behavior can be tuned at runtime.

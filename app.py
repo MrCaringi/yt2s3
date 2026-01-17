@@ -77,12 +77,15 @@ def process_video():
     # Use the prefix from the request (strip slashes)
     s3_prefix = s3_prefix.strip('/')
     s3_object_name = f"{s3_prefix}/{video_id}.mp3"
+    
+    # Initialize variables used in finally block to prevent UnboundLocalError
+    final_file = None
+    cookiefile_to_use = None
 
     app.logger.info("Start processing video=%s bucket=%s url=%s", video_id, bucket_name, youtube_url)
 
     try:
         # --- 1. DOWNLOAD & CONVERSION WITH YT-DLP ---
-        cookiefile_to_use = None
         if os.path.isfile(YTDLP_COOKIES):
             cookiefile_to_use = prepare_cookiefile(YTDLP_COOKIES)
         else:
@@ -176,7 +179,6 @@ def process_video():
         uploader = info.get('uploader') if isinstance(info, dict) else None
         upload_date = info.get('upload_date') if isinstance(info, dict) else None
         expected_mp3 = f"/tmp/{video_id}.mp3" if video_id else None
-        final_file = None
         if expected_mp3 and os.path.isfile(expected_mp3):
             final_file = expected_mp3
         else:
