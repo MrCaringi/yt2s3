@@ -1,6 +1,6 @@
 # YT-2-S3
 
-Download a video from YT, convert it to MP3 audio format (with ffmpeg) and upload it to a S3 compatible storage (RustFS, minio, etc)
+Download a video from YT in MP3 audio format and upload it to a S3 compatible storage (RustFS, minio, etc)
 
 ## Docker Hub repo
 
@@ -147,4 +147,5 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
     - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.
     - Added `S3_OBJECT_PREFIX` environment variable to configure the upload path/prefix inside the bucket (default: `audios`).
   - Translated internal comments and Dockerfile docs to English.
+
 </details>
