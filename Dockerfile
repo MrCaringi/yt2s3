@@ -25,6 +25,8 @@ RUN apt-get update && \
 # Upgrade pip and install Python dependencies
 RUN python -m pip install --upgrade pip setuptools
 RUN python -m pip install 'yt-dlp[default]' flask requests minio gunicorn
+# Force upgrade yt-dlp to ensure latest EJS challenge solver scripts are available
+RUN python -m pip install --upgrade --force-reinstall 'yt-dlp[default]'
 
 # Install Deno runtime (used by yt-dlp EJS challenge solver)
 # Install into /usr/local to avoid using a per-user home dir during image build
