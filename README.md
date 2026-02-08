@@ -23,6 +23,8 @@ services:
       - S3_ACCESS_KEY=${S3_ACCESS_KEY}
       - S3_SECRET_KEY=${S3_SECRET_KEY}
       - S3_SECURE=true
+      # EJS Challenge Solver (v2.4.0+) — downloads latest scripts from GitHub for YouTube compatibility
+      - YTDLP_REMOTE_COMPONENTS=ejs:github
       # Optional yt-dlp/ffmpeg tuning (uncomment to customize):
       #- YTDLP_FORMAT=bestaudio/best
       #- YTDLP_PREFERRED_CODEC=mp3
@@ -107,6 +109,32 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 
 ## Troubleshooting
 
+### EJS Challenge Solver Errors (v2.4.0+)
+
+If you encounter errors like:
+- `Hash mismatch on challenge solver core script`
+- `Challenge solver lib script version X.X.X is not supported`
+- `The downloaded file is empty`
+- `Requested format is not available`
+
+**Root cause:**
+YouTube uses JavaScript challenges to verify legitimate download requests. yt-dlp requires up-to-date EJS (JavaScript challenge solver) scripts to handle these challenges. If the scripts are outdated, YouTube blocks the download.
+
+**Solutions (in order of preference):**
+
+1. **Ensure you're using v2.4.0 or later** (recommended):
+   - The container now automatically downloads the latest EJS scripts from GitHub on first run
+   - Make sure `YTDLP_REMOTE_COMPONENTS` is NOT set to an empty value (default: `ejs:github`)
+   - The container needs internet connectivity to download these scripts
+   - Example compose configuration:
+     ```yaml
+     services:
+       yt2s3:
+         image: mrcaringi/yt2s3:2.4.0  # Use 2.4.0 or later
+         environment:
+           - YTDLP_REMOTE_COMPONENTS=ejs:github  # Default, explicitly shown
+     ```
+
 ### HTTP 403 Forbidden error from YouTube
 
 If you encounter errors like `[download] Got error: HTTP Error 403: Forbidden`, this typically indicates that YouTube is blocking the download request. This can happen for several reasons:
@@ -136,6 +164,19 @@ If you encounter errors like `[download] Got error: HTTP Error 403: Forbidden`, 
 ## Changelog
 <details>
   <summary>Display changelog</summary>
+
+- Version 2.4.0 — 2026-02-08
+  - **MAJOR FIX**: Resolved YouTube download failures caused by outdated EJS (JavaScript challenge solver) scripts. This addresses the "Hash mismatch on challenge solver core script" and "Challenge solver lib script version not supported" errors.
+  - **Key Changes**:
+    - Dockerfile now forces a reinstall of yt-dlp to ensure the latest version with updated EJS scripts
+    - Added new environment variable `YTDLP_REMOTE_COMPONENTS` (default: `ejs:github`) which enables automatic download of the latest EJS challenge solver scripts directly from GitHub
+    - Added `allowed_extractors: ['youtube']` to optimize yt-dlp options for YouTube
+    - Added `yt_dlp_allow_breaks: True` to allow latest API functionality
+  - **Breaking Changes**: None — these are backward-compatible improvements
+  - **Migration Notes**: 
+    - If you prefer NOT to auto-download remote components, set `YTDLP_REMOTE_COMPONENTS=` (empty string) in your environment, but this is **not recommended**
+    - Default behavior now requires internet connectivity to download EJS scripts on first run (subsequent runs use cached scripts)
+  - This resolves the issue where YouTube videos would fail with "The downloaded file is empty" or "Requested format is not available" errors
 
 - Version 2.3.1 — 2026-01-17
   - **BUG FIX**: Fixed `UnboundLocalError` in the `finally` block that would occur when yt-dlp download fails. Variables `final_file` and `cookiefile_to_use` are now properly initialized at the start of the request handler.

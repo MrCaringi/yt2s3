@@ -131,6 +131,8 @@ def process_video():
             ytdlp_postproc_args = shlex.split(pp_args_raw)
         except Exception:
             ytdlp_postproc_args = ['-loglevel', 'info']
+        # Remote components for EJS (YouTube challenge solver) - default enabled for latest scripts
+        ytdlp_remote_components = os.environ.get('YTDLP_REMOTE_COMPONENTS', 'ejs:github')
 
         # Allow passing additional yt-dlp options as JSON map in env var YTDLP_EXTRA_OPTS_JSON
         extra_opts = {}
@@ -156,10 +158,16 @@ def process_video():
             'postprocessor_args': ytdlp_postproc_args,
             'quiet': True,
             'verbose': True,
+            'allowed_extractors': ['youtube'],  # Optimize for YouTube
+            'yt_dlp_allow_breaks': True,  # Allow breaking API changes for latest functionality
         }
         # Merge any extra options provided via JSON (env var)
         if extra_opts:
             ydl_opts.update(extra_opts)
+
+        # Add remote components for EJS challenge solving if configured
+        if ytdlp_remote_components:
+            ydl_opts['remote_components'] = ytdlp_remote_components
 
         if cookiefile_to_use:
             ydl_opts['cookiefile'] = cookiefile_to_use
