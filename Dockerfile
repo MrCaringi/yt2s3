@@ -33,6 +33,9 @@ RUN python -m pip install --upgrade --force-reinstall 'yt-dlp[default]'
 RUN curl -fsSL https://deno.land/x/install/install.sh | DENO_INSTALL=/usr/local sh && \
     chmod +x /usr/local/bin/deno
 
+# Add Deno to PATH
+ENV PATH="/usr/local/bin:${PATH}"
+
 # Copy the application
 WORKDIR /app
 COPY . /app

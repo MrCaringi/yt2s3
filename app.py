@@ -11,7 +11,7 @@ import glob
 import shlex
 import json
 
-# last version info: v2.1.3 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
+# last version info: v2.4.1 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
 
 app = Flask(__name__)
 
@@ -167,7 +167,7 @@ def process_video():
 
         # Add remote components for EJS challenge solving if configured
         if ytdlp_remote_components:
-            ydl_opts['remote_components'] = ytdlp_remote_components
+            ydl_opts['remote_components'] = [ytdlp_remote_components]
 
         if cookiefile_to_use:
             ydl_opts['cookiefile'] = cookiefile_to_use

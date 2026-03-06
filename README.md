@@ -165,6 +165,9 @@ If you encounter errors like `[download] Got error: HTTP Error 403: Forbidden`, 
 <details>
   <summary>Display changelog</summary>
 
+- Version 2.4.1 — 2026-03-05
+  - **MAJOR FIX**: Resolved YouTube download failures caused by a failure of usaje of `ytdlp_remote_components`
+
 - Version 2.4.0 — 2026-02-08
   - **MAJOR FIX**: Resolved YouTube download failures caused by outdated EJS (JavaScript challenge solver) scripts. This addresses the "Hash mismatch on challenge solver core script" and "Challenge solver lib script version not supported" errors.
   - **Key Changes**:
