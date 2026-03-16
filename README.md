@@ -57,12 +57,6 @@ This file must contain your cookies for your YouTube sessions in Netscape format
 
 You can get it, for instance, [using this plugin in your browser](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
 
-### EJS / JavaScript challenge runtime
-
-- The container image now includes the Deno JavaScript runtime and installs `yt-dlp` with the default extras (including `yt-dlp-ejs`).
-- Having a supported JS runtime and the EJS scripts available avoids the "challenge solving failed" warnings when downloading from YouTube.
-
-
 ### INPUT
 - METHOD: `POST`
 - URL: `http://yt2s3:5000/process`
@@ -94,21 +88,10 @@ You can get it, for instance, [using this plugin in your browser](https://chrome
 ]
 ```
 
-
-## Contributors
-
-<a href="https://github.com/MrCaringi/yt2s3/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=MrCaringi/yt2s3" />
-</a>
-
-[contrib.rocks](https://contrib.rocks).
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=MrCaringi/yt2s3&type=Date)](https://www.star-history.com/#MrCaringi/yt2s3&Date)
-
 ## Troubleshooting
-
+<details>
+  <summary>Display troubleshooting</summary>
+  
 ### EJS Challenge Solver Errors (v2.4.0+)
 
 If you encounter errors like:
@@ -201,6 +184,7 @@ YouTube serves large videos using fragmented downloads (DASH format). yt-dlp dow
 
 3. **Check for yt-dlp updates:**
    - Ensure you're using the latest version of the container, as yt-dlp bugs with large files are periodically fixed.
+</details>
 
 ## Changelog
 <details>
@@ -273,5 +257,17 @@ YouTube serves large videos using fragmented downloads (DASH format). yt-dlp dow
     - Replaced MinIO-specific environment variables with generic `S3_*` names: `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `S3_SECURE`.
     - Added `S3_OBJECT_PREFIX` environment variable to configure the upload path/prefix inside the bucket (default: `audios`).
   - Translated internal comments and Dockerfile docs to English.
-
 </details>
+
+
+## Contributors
+
+<a href="https://github.com/MrCaringi/yt2s3/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=MrCaringi/yt2s3" />
+</a>
+
+[contrib.rocks](https://contrib.rocks).
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MrCaringi/yt2s3&type=Date)](https://www.star-history.com/#MrCaringi/yt2s3&Date)
