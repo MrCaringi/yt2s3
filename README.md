@@ -1,10 +1,11 @@
-# YT-2-S3
-[![YT-2-S3](https://repository-images.githubusercontent.com/722597620/0fa936a2-8164-4f53-867f-def4beb64b21)](https://hub.docker.com/r/mrcaringi/yt2s3)
+[![YT-2-S3](https://github.com/MrCaringi/yt2s3/blob/main/assets/images/logo.png?raw=true)](https://hub.docker.com/r/mrcaringi/yt2s3)
 
 <p align="center">
   <a href="https://github.com/MrCaringi/yt2s3/actions/workflows/docker-build-push.yml"><img alt="Build and Push Docker Images" src="https://github.com/rustfs/rustfs/actions/workflows/docker.yml/badge.svg" /></a>
   <img alt="Github Last Commit" src="https://img.shields.io/github/last-commit/mrcaringi/yt2s3"/>
 </p>
+
+# YT-2-S3
 Download a video from YT in MP3 audio format and upload it to a S3 compatible storage (RustFS, minio, etc)
 
 ## Docker Hub repo
