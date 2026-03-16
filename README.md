@@ -161,9 +161,59 @@ If you encounter errors like `[download] Got error: HTTP Error 403: Forbidden`, 
      YTDLP_EXTRA_OPTS_JSON='{ "http_headers": { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" } }'
      ```
 
+### "Sign in to confirm you're not a bot" error
+
+If you encounter errors like `[youtube] x92a-kWxxhM: Sign in to confirm you're not a bot`, this is due to YouTube's anti-bot measures requiring authentication for certain videos.
+
+**Solutions:**
+
+1. **Ensure cookies are provided and up to date:**
+   - Export fresh cookies from a logged-in YouTube session using [Get CookiesTxt Locally](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) or similar tools.
+   - Mount the updated `cookies.txt` file in the container.
+   - Restart the container after updating cookies.
+
+2. **Check cookie validity:**
+   - Cookies expire; refresh them every 1-2 weeks for reliable operation.
+   - Ensure the browser session was active and logged into YouTube when exporting.
+
+This is not a breaking change, but cookies are increasingly required for YouTube downloads.
+
+### File Rename Errors During Large Downloads
+
+If you encounter errors like `ERROR: Unable to rename file: [Errno 2] No such file or directory: '/tmp/...part-FragXXXX.part' -> '/tmp/...part-FragXXXX'`, this typically occurs when downloading very large videos (several GB or hours long).
+
+**Root cause:**
+YouTube serves large videos using fragmented downloads (DASH format). yt-dlp downloads multiple fragments concurrently, and during the merging process, a fragment file may be missing or corrupted, causing the rename operation to fail.
+
+**Solutions:**
+
+1. **Ensure sufficient disk space:**
+   - Verify that the mounted temp directory (e.g., `/tmp/yt-dlp` on host) has enough space for the full video file plus temporary fragments.
+   - Large videos can require 2-3x the final file size in temp space during download.
+
+2. **Use sequential fragment downloads:**
+   - The container now defaults to downloading fragments sequentially (`concurrent_fragment_downloads: 1`) to reduce race conditions.
+   - If issues persist, try setting a specific format that avoids DASH:
+     ```yaml
+     environment:
+       - YTDLP_FORMAT=bestaudio[ext=m4a]/bestaudio  # Prefer single-file formats
+     ```
+
+3. **Check for yt-dlp updates:**
+   - Ensure you're using the latest version of the container, as yt-dlp bugs with large files are periodically fixed.
+
 ## Changelog
 <details>
   <summary>Display changelog</summary>
+
+- Version 2.5.0 — 2026-03-16
+  - **FIX**: Resolved file rename errors during download of large videos by setting `concurrent_fragment_downloads` to 1 in yt-dlp options, forcing sequential fragment downloads to avoid race conditions.
+  - Added troubleshooting documentation for large file download issues.
+  - This is NOT a breaking change.
+
+- Version 2.4.2 — 2026-03-10
+  - Updated troubleshooting documentation for YouTube bot detection errors, emphasizing the need for valid and up-to-date cookies. No code changes; this is a documentation update only.
+  - This is NOT a breaking change.
 
 - Version 2.4.1 — 2026-03-05
   - **MAJOR FIX**: Resolved YouTube download failures caused by a failure of usaje of `ytdlp_remote_components`

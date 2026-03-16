@@ -11,7 +11,7 @@ import glob
 import shlex
 import json
 
-# last version info: v2.4.1 - s3ObjectPrefix is now required in the POST request JSON body, more verbosity in docker
+# last version info: v2.4.2 - Updated troubleshooting for YouTube bot detection requiring cookies
 
 app = Flask(__name__)
 
@@ -160,6 +160,7 @@ def process_video():
             'verbose': True,
             'allowed_extractors': ['youtube'],  # Optimize for YouTube
             'yt_dlp_allow_breaks': True,  # Allow breaking API changes for latest functionality
+            'concurrent_fragment_downloads': 1,  # Download fragments sequentially to avoid rename errors on large files
         }
         # Merge any extra options provided via JSON (env var)
         if extra_opts:
