@@ -21,7 +21,7 @@ services:
     image: mrcaringi/yt2s3:latest
     container_name: yt2s3
     volumes:
-      - ./cookies.txt:/app/cookies.txt
+      - ./cookies.txt:/app/cookies.txt:ro
       - /tmp/yt-dlp:/tmp
     environment:
       - YTDLP_COOKIES=/app/cookies.txt
@@ -62,6 +62,8 @@ S3_SECURE=true
 This file must contain your cookies for your YouTube sessions in Netscape format.
 
 You can get it, for instance, [using this plugin in your browser](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)
+
+**Recommended:** Mount this file as read-only (`:ro` flag) in your docker-compose.yml to ensure consistent behavior and prevent synchronization issues. See [Cookie Management Strategy](#cookie-management-strategy) section below for details.
 
 ### INPUT
 - METHOD: `POST`
@@ -167,6 +169,33 @@ If you encounter errors like `[youtube] x92a-kWxxhM: Sign in to confirm you're n
 
 This is not a breaking change, but cookies are increasingly required for YouTube downloads.
 
+### Cookie Management Strategy
+
+The recommended approach for production environments is to mount your `cookies.txt` file as **read-only** (`:ro`) in your docker-compose.yml:
+
+```yaml
+volumes:
+  - ./cookies.txt:/app/cookies.txt:ro
+```
+
+**Why read-only?**
+- Each request copies the original cookies to a temporary file before download
+- yt-dlp updates the temporary copy (not the original)
+- The original cookies.txt on your host remains unchanged
+- Ensures every request starts with a fresh, consistent state
+
+**Advantages:**
+- No risk of the original cookies being corrupted or overwritten with stale data
+- Predictable behavior across multiple concurrent downloads
+- Simple lifecycle: manually update cookies.txt on the host every 4–5 days as they expire
+- No synchronization issues between host and container
+
+**Cookie Expiration:**
+- YouTube cookies typically expire every 4–5 days
+- When downloads start failing with 403 Forbidden errors, export fresh cookies from your browser
+- Replace the `cookies.txt` file on your host and restart the container
+- No code changes needed — just swap the file
+
 ### File Rename Errors During Large Downloads
 
 If you encounter errors like `ERROR: Unable to rename file: [Errno 2] No such file or directory: '/tmp/...part-FragXXXX.part' -> '/tmp/...part-FragXXXX'`, this typically occurs when downloading very large videos (several GB or hours long).
@@ -195,6 +224,13 @@ YouTube serves large videos using fragmented downloads (DASH format). yt-dlp dow
 ## Changelog
 <details>
   <summary>Display changelog</summary>
+
+- Version 2.6.0 — 2026-04-12
+  - **IMPROVEMENT**: Enhanced cookie file handling to always copy the mounted cookies.txt to a temporary file before each download. This prevents yt-dlp from modifying the original mounted cookie file and ensures consistent behavior across requests.
+  - **Recommended Configuration**: Mount cookies.txt with `:ro` (read-only) flag in docker-compose.yml to avoid synchronization issues and ensure each download starts with a fresh copy of the original cookies.
+  - Added comprehensive "Cookie Management Strategy" troubleshooting section explaining the read-only approach, advantages, and cookie expiration lifecycle.
+  - Updated docker-compose.yml example to include `:ro` flag: `- ./cookies.txt:/app/cookies.txt:ro`
+  - This is NOT a breaking change; existing configurations will continue to work, but read-only mounting is now recommended best practice.
 
 - Version 2.5.0 — 2026-03-16
   - **FIX**: Resolved file rename errors during download of large videos by setting `concurrent_fragment_downloads` to 1 in yt-dlp options, forcing sequential fragment downloads to avoid race conditions.

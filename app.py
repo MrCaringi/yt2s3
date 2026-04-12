@@ -11,7 +11,7 @@ import glob
 import shlex
 import json
 
-# last version info: v2.4.2 - Updated troubleshooting for YouTube bot detection requiring cookies
+# last version info: v2.6.0 - Enhanced cookie file handling with read-only mount strategy
 
 app = Flask(__name__)
 
@@ -36,22 +36,22 @@ YTDLP_COOKIES = os.environ.get("YTDLP_COOKIES", "/app/cookies.txt")
 S3_OBJECT_PREFIX = os.environ.get("S3_OBJECT_PREFIX", "audios").strip('/')
 
 def prepare_cookiefile(path):
-    """If the cookiefile exists but is mounted read-only, copy it to a temp file
-    so that yt-dlp can write to it. Returns the usable path or None.
+    """Always copy the cookiefile to a temp location so yt-dlp can update cookies
+    during download without modifying the original mounted file.
+    This ensures each request uses a fresh copy of the original cookies.
+    Returns the temp file path or None if the original doesn't exist.
     """
     if not path or not os.path.isfile(path):
         return None
-    final_file = None
-    cookiefile_to_use = None
     try:
-        # if writable, use as-is
-        if os.access(path, os.W_OK):
-            return path
-        # copy to tmp to allow yt-dlp to write
+        # Always copy to tmp, even if the original is writable.
+        # This ensures yt-dlp can write updated cookies without affecting the
+        # mounted original, and each request gets a fresh copy of the original.
         tmp = tempfile.NamedTemporaryFile(prefix="yt_cookies_", delete=False)
         tmp.close()
         shutil.copy2(path, tmp.name)
         os.chmod(tmp.name, 0o600)
+        app.logger.info(f"Copied cookiefile from {path} to temp {tmp.name}")
         return tmp.name
     except Exception as e:
         app.logger.warning(f"prepare_cookiefile failed: {e}")
