@@ -225,6 +225,9 @@ YouTube serves large videos using fragmented downloads (DASH format). yt-dlp dow
 <details>
   <summary>Display changelog</summary>
 
+- Version 2.7.0 — 2026-06-24
+  - **IMPROVEMENT**: Added `extractor_args` to `ydl_opts` in order to improve reliability
+
 - Version 2.6.0 — 2026-04-12
   - **IMPROVEMENT**: Enhanced cookie file handling to always copy the mounted cookies.txt to a temporary file before each download. This prevents yt-dlp from modifying the original mounted cookie file and ensures consistent behavior across requests.
   - **Recommended Configuration**: Mount cookies.txt with `:ro` (read-only) flag in docker-compose.yml to avoid synchronization issues and ensure each download starts with a fresh copy of the original cookies.

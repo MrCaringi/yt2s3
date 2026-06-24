@@ -11,7 +11,7 @@ import glob
 import shlex
 import json
 
-# last version info: v2.6.0 - Enhanced cookie file handling with read-only mount strategy
+# last version info: v2.7.0 - Enhanced cookie file handling with read-only mount strategy
 
 app = Flask(__name__)
 
@@ -161,6 +161,13 @@ def process_video():
             'allowed_extractors': ['youtube'],  # Optimize for YouTube
             'yt_dlp_allow_breaks': True,  # Allow breaking API changes for latest functionality
             'concurrent_fragment_downloads': 1,  # Download fragments sequentially to avoid rename errors on large files
+            #   fix v2.7.0
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['android', 'web', 'tv_embedded']
+                }
+            }
+
         }
         # Merge any extra options provided via JSON (env var)
         if extra_opts:
